@@ -1,5 +1,6 @@
 <?php
-class Berserker extends character
+require_once __DIR__ . '/character.php';
+class Berserker extends Character
 {
     public function __construct()
     {
@@ -15,16 +16,23 @@ class Berserker extends character
         );
     }
 
-   public function specialSkill(character $opponent) {
-        // Regra do PDF: Se não tiver mana suficiente, o sistema deve impedir
-        if ($this->mana < 20) {
+    public function specialSkill(Character $opponent): string
+    {
+        $cost = 40;
+
+        if ($this->mana < $cost) {
             throw new Exception("Mana insuficiente para usar Fúria Incontrolável!");
         }
-        
-        echo "{$this->class} ativou {$this->skill}!\n";
-        // Lógica da habilidade: Dá muito dano mas consome mana
-        $dano = $this->attack * 1.5;
-        $opponent->hp -= $dano;
-        $this->mana -= 20;
+        $this->mana -= $cost;
+
+        $defenseTotal = $opponent->getDefense() + $opponent->getBuffer();
+        $damage = ($this->attack * 2) - $defenseTotal;
+
+        if ($damage < 0) {
+            $damage = 0;
+        }
+        $opponent->receiveDamage($damage);
+
+        return "🔥 {$this->class} usou a habilidade especial [{$this->skill}] em {$opponent->getClass()} e causou {$damage} de dano massivo!";
     }
 }
