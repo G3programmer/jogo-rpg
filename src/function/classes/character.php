@@ -11,7 +11,16 @@ abstract class character
     protected int $mana;
     protected int $manaMax;
     protected int $buffer;
-    protected int $nerf;
+    protected bool $isStunned = false;
+
+    public function setStunned(bool $status): void
+    {
+        $this->isStunned = $status;
+    }
+    public function isStunned(): bool
+    {
+        return $this->isStunned;
+    }
 
     public function __construct(
         string $class,
@@ -32,30 +41,55 @@ abstract class character
         $this->mana = $mana;
         $this->manaMax = $mana;
         $this->buffer = 0;
-        $this->nerf = 0;
     }
- 
-public function attackTarget(Character $opponent): int
-    {
-        $defenseTotal = $opponent->getDefense() + $opponent->getBuffer();
-        $damage = $this->attack - $defenseTotal;
 
-        if ($damage < 0) {
-            $damage = 0;
+    public function tryAction(int $difficultyClass): bool
+    {
+        return Dice::roll(20) >= $difficultyClass;
+    }
+
+    public function attackTarget(Character $opponent): array
+    {
+        $roll = Dice::roll(20);
+
+        if ($roll === 20) {
+            $baseDamage = ($this->attack + 20) * 2;
+        } elseif ($roll === 1) {
+            $baseDamage = (int)($this->attack / 2);
+        } else {
+            $baseDamage = $this->attack + $roll;
         }
 
-        $opponent->receiveDamage($damage);
-        return $damage;
+        $opponent->receiveDamage($baseDamage);
+        return [
+            'damage' => $baseDamage,
+            'roll' => $roll
+        ];
     }
 
-    public function defend(): void
+    public function calculateAttackPower(): int
     {
-        $this->buffer = 5;
+        return $this->attack + (int)(Dice::roll(20) / 2);
+    }
+
+    public function defend(): int
+    {
+        $roll = Dice::roll(20);
+
+        $this->buffer = (int)($roll / 2);
+
+        return $roll;
     }
 
     public function receiveDamage(int $damage): void
     {
-        $this->hp -= $damage;
+        $totalDefense = $this->defense + $this->buffer;
+        $mitigation = (int)($totalDefense * 1.5);
+        $finalDamage = $damage - $mitigation;
+        if ($finalDamage < 0) {
+            $finalDamage = 0;
+        }
+        $this->hp -= $finalDamage;
         if ($this->hp < 0) {
             $this->hp = 0;
         }
@@ -63,23 +97,66 @@ public function attackTarget(Character $opponent): int
 
     public function resetBuffer(): void
     {
-        // Limpa o bônus de defesa no começo/fim do turno do personagem
         $this->buffer = 0;
     }
 
     abstract public function specialSkill(Character $opponent);
-    public function getClass(): string { return $this->class; }
-    public function getDescription(): string { return $this->description; }
-    public function getSkill(): string { return $this->skill; }
-    public function getHp(): int { return $this->hp; }
-    public function getHpMax(): int { return $this->hpMax; }
-    public function getAttack(): int { return $this->attack; }
-    public function getDefense(): int { return $this->defense; }
-    public function getMana(): int { return $this->mana; }
-    public function getManaMax(): int { return $this->manaMax; }
-    public function getBuffer(): int { return $this->buffer; }
-    public function getNerf(): int { return $this->nerf; }
+    public function getClass(): string
+    {
+        return $this->class;
+    }
+    public function getDescription(): string
+    {
+        return $this->description;
+    }
+    public function getSkill(): string
+    {
+        return $this->skill;
+    }
+    abstract public function getSpecialSkillCost(): int;
+    public function getHp(): int
+    {
+        return $this->hp;
+    }
+    public function getHpMax(): int
+    {
+        return $this->hpMax;
+    }
+    public function getAttack(): int
+    {
+        return $this->attack;
+    }
+    public function getDefense(): int
+    {
+        return $this->defense;
+    }
+    public function getMana(): int
+    {
+        return $this->mana;
+    }
+    public function getManaMax(): int
+    {
+        return $this->manaMax;
+    }
 
-    public function setMana(int $mana): void { $this->mana = max(0, $mana); }
-    public function setNerf(int $nerf): void { $this->nerf = $nerf; }
+    public function setMana(int $mana): void
+    {
+        $this->mana = max(0, $mana);
+    }
+
+    public function getBuffer(): int
+    {
+        return $this->buffer;
+    }
+
+    public function show(): void
+    {
+        echo "\n--- Ficha de Personagem: {$this->getClass()} ---\n";
+        echo "Descrição: {$this->getDescription()}\n";
+        echo "Habilidade Especial: {$this->getSkill()}\n";
+        echo "-------------------------------------------\n";
+        echo "Vida: {$this->getHp()}/{$this->getHpMax()} | Mana: {$this->getMana()}/{$this->getManaMax()}\n";
+        echo "Ataque: {$this->getAttack()} | Defesa: {$this->getDefense()}\n";
+        echo "-------------------------------------------\n";
+    }
 }

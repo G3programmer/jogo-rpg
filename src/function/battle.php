@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../public/assets/show/fight/berserker.php';
 require_once __DIR__ . '/../../public/assets/show/fight/wizard.php';
 require_once __DIR__ . '/../../public/assets/show/fight/archer.php';
 require_once __DIR__ . '/../../public/assets/show/fight/battleShow.php';
+require_once __DIR__ . '/dice.php';
 require_once __DIR__ . '/cleaner.php';
 
 function getCharacterArt(Character $character)
@@ -23,6 +24,9 @@ function fight(Player $player1, Player $player2)
     $logs = [];
 
     while ($player1->getCharacter()->getHp() > 0 && $player2->getCharacter()->getHp() > 0) {
+        $char = $activePlayer->getCharacter();
+        $novaMana = min($char->getMana() + 5, $char->getManaMax());
+        $char->setMana($novaMana);
         clearScreen();
         renderHeader($turn, $player1, $player2, $activePlayer);
         logBattle($logs);
@@ -39,18 +43,37 @@ function fight(Player $player1, Player $player2)
                 try {
                     switch ($action) {
                         case '1':
-                            $dano = $activePlayer->getCharacter()->attackTarget($opponent->getCharacter());
-                            $logs[] = "{$activePlayer->getName()} atacou e causou {$dano} de dano!";
+                            $result = $activePlayer->getCharacter()->attackTarget($opponent->getCharacter());
+
+                            $dano = $result['damage'];
+                            $roll = $result['roll'];
+
+                            $logs[] = "{$activePlayer->getName()} rolou [D20: $roll] e causou {$dano} de dano!";
+                            $validAction = true;
                             break;
+
                         case '2':
-                            $activePlayer->getCharacter()->defend();
-                            $logs[] = "{$activePlayer->getName()} defendeu-se!";
+                            $roll = $activePlayer->getCharacter()->defend();
+                            $logs[] = "{$activePlayer->getName()} rolou [D20: $roll] na defesa e se preparou!";
+                            $validAction = true;
                             break;
+
                         case '3':
-                            $logs[] = $activePlayer->getCharacter()->specialSkill($opponent->getCharacter());
+                            $char = $activePlayer->getCharacter();
+                            $custoMana = $char->getSpecialSkillCost();
+                           if ($char->getMana() >= $custoMana) {
+                                $skillLog = $activePlayer->getCharacter()->specialSkill($opponent->getCharacter());
+                                $logs[] = "{$activePlayer->getName()} usou habilidade! (Custo: $custoMana MP) - $skillLog";
+                                $validAction = true;
+                            } else {
+                                $logs[] = "Mana insuficiente! Você precisa de {$custoMana} MP.";
+                               
+                                renderHeader($turn, $player1, $player2, $activePlayer);
+                                logBattle($logs);
+                                $validAction = false;
+                            }
                             break;
                     }
-                    $validAction = true;
                 } catch (Exception $error) {
                     echo "Erro: " . $error->getMessage() . "\n";
                     sleep(2);
@@ -71,6 +94,9 @@ function fight(Player $player1, Player $player2)
         $opponent = $temp;
         $turn++;
     }
-
-    echo "Fim de jogo! O vencedor foi ";
+    return [
+        'winner' => ($player1->getCharacter()->getHp() > 0) ? $player1 : $player2,
+        'loser'  => ($player1->getCharacter()->getHp() > 0) ? $player2 : $player1,
+        'turns'  => $turn - 1
+    ];
 }

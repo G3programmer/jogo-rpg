@@ -8,35 +8,45 @@ class Archer extends Character
     {
         parent::__construct(
             "Archer", // classe
-            "Um caçador implacável das florestas profundas. Mestre do arco e da sobrevivência, ele usa sua agilidade para encontrar pontos fracos na armadura dos inimigos antes que consigam se aproximar.", // descrição
+            "Há rumores de que ele não seja um homem e que provavelmente tenha orelhas pontudas.\nPouco se sabe sobre seu passado, alguns dizem que sua antiga aldeia habitava nas florestas de Lothlórien\n e que ele ou ela foi obrigado a aprender a usar o arco para sobreviver. Agora, passa seus dias como caçador de recompensa.", // descrição
             "Chuva de Flechas: Dispara uma rajada veloz que atinge o oponente múltiplas vezes, ignorando parcialmente sua defesa.", // habilidade
             220, // vida
             65,  // ataque
             20,  // defesa
-            50   // mana
+            35   // mana
         );
     }
     public function specialSkill(Character $opponent): string
     {
-     
-    $cost = 25;
+        $cost = 35;
+        echo "\nDEBUG: Mana atual: {$this->mana} | Custo: {$cost}\n";
 
         if ($this->mana < $cost) {
-            throw new Exception("Energia insuficiente para desferir a Chuva de Flechas!");
+            return "Você não consegue usar a habilidade, você precisa de {$cost} de mana!";
         }
-        
+
         $this->mana -= $cost;
 
-        $defenseTotal = $opponent->getDefense() + $opponent->getBuffer();
-        
-        $damage = ($this->attack + 50) - $defenseTotal;
+        $roll = Dice::roll(20);
 
-        if ($damage < 0) {
-            $damage = 0;
-        }
-        
+        $defenseIgnorada = (int)(($opponent->getDefense() + $opponent->getBuffer()) / 2);
+
+        $danoBase = ($this->attack + ($roll * 3));
+        $damage = (int)($danoBase - $defenseIgnorada);
+
+        if ($damage < 0) $damage = 0;
         $opponent->receiveDamage($damage);
- 
-        return "🏹 {$this->class} saltou para trás e disparou a habilidade especial [{$this->skill}] em {$opponent->getClass()}, cravando várias flechas e causando {$damage} de dano físico!";
+
+        if ($roll === 20) {
+            return "DISPARO PERFEITO! {$this->class} atingiu os pontos vitais e causou {$damage} de dano!";
+        } elseif ($roll > 10) {
+            return "Chuva de flechas precisa! {$this->class} causou {$damage} de dano.";
+        } else {
+            return "Flechas de raspão. {$this->class} causou {$damage} de dano.";
+        }
+    }
+    public function getSpecialSkillCost(): int
+    {
+        return 25;
     }
 }

@@ -1,31 +1,43 @@
 <?php
 require_once __DIR__ . '/character.php';
-class Wizard extends Character {
-    public function __construct() {
-        parent:: __construct(
+class Wizard extends Character
+{
+    public function __construct()
+    {
+        parent::__construct(
             "Wizard", //classe
-            "Um mago poderoso que domina as artes arcanas, capaz de conjurar feitiços 
-            devastadores e manipular os elementos a seu favor", //descrição
+            "Um velho sábio que domina as artes arcanas,\nse isolou da humanidade após uma falha catastrófica interdimensional provocando a atenção do cuthulhu.\nAgora ele busca mais conhecimento e não se importa com os seus métodos", //descrição
             "Tempestade Arcana: Causa dano mágico massivo a um oponente, ignorando sua defesa.", //habilidade
-            200, //vida
-            90, //ataque
+            300, //vida
+            40, //ataque
             15, //defesa
-            60  //mana
+            15  //mana
         );
     }
 
-    public function specialSkill(Character $opponent): string {
-        $cost = 60;
-       
+    public function specialSkill(Character $opponent): string
+    {
+        $cost = 15;
         if ($this->mana < $cost) {
-            throw new Exception("Mana insuficiente para usar Tempestade Arcana!");
+            return "Mana insuficiente! Você precisa de {$cost} MP.";
         }
+
         $this->mana -= $cost;
+        $roll = Dice::roll(20);
 
-        $damage = $this->attack * 2;
+        $cure = $roll * 2;
+        $this->hp = min($this->hp + $cure, $this->hpMax);
 
-        $opponent->receiveDamage($damage);
-
-        return "✨ {$this->class} usou a habilidade especial [{$this->skill}] em {$opponent->getClass()} e causou {$damage} de dano mágico massivo!";
+        if ($roll === 20) {
+            return "CURA ARCANA CRÍTICA! Você rolou 20 e recuperou {$cure} de HP!";
+        } elseif ($roll > 10) {
+            return "Cura Arcana estável! Você recuperou {$cure} de HP.";
+        } else {
+            return "O feitiço foi instável, mas você recuperou {$cure} de HP.";
+        }
+    }
+    public function getSpecialSkillCost(): int
+    {
+        return 100;
     }
 }

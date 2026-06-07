@@ -1,8 +1,7 @@
 <?php
-function archerShow()
+function archerShow(Character $character)
 {
-    echo "[3] - Arqueiro \n";
-    echo "                                         √⋆°•∂∂°±            .    .:                      
+  echo "                                         √⋆°•∂∂°±            .    .:                      
                                        i◦°∇∏⋆°∏∂•∏;        ..;,i;>l,;;                    
                                       +◦∂√≠-∏∏=≠≥°∑      .:i≈÷+;>i;!,                     
                                      l-∇∏∇≥±÷×=≠∂∇•>I    l<≥<×<->+i;                      
@@ -35,5 +34,11 @@ function archerShow()
                                  ±•⋆••••∇•∇∇∂∏∑∇⋆⋆=÷±≈⋆•∫•∫°⋆∂°∂°⋆÷∇∇∇∇∏•⋆∂!              
                                 ;◦⋆⋆°⋆°•°∏∇∇⋆°∏∏⋆≥=≠∑∂∑⋆⋆∏°°∏•◦••∫°•⋆⋆∏≠:                 
                                ,∇•°°⋆∫√∏⋆••••≥√∑÷≤∇≈≈≈∑⋆⋆∇∂∂≈-.I≤•∏!                      
-                               ±•°∏°⋆•⋆°∂∑°√≥⋆•∏≠∂±≥±≤≥≤⋆⋆∑≥√<     l× \n";
+                               ±•°∏°⋆•⋆°∂∑°√≥⋆•∏≠∂±≥±≤≥≤⋆⋆∑≥√<     l× \n\n";
+
+  echo "[3] - " . $character->getClass() . "\n";
+  echo "Descrição: " . $character->getDescription() . "\n";
+  echo "\nVida: " . $character->getHp() . " || Ataque: " . $character->getAttack() .
+    " || Defesa: " . $character->getDefense() . " || Mana: " . $character->getMana() . "\n";
+  echo "\nHabilidade: " . $character->getSkill() . "\n";
 }

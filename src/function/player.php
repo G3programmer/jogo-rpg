@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/cleaner.php';
 require_once __DIR__ . '/systemNavigation.php';
+require_once __DIR__ . '/selectCharacter.php';
 function declarePlayer()
 {
   clearScreen();
@@ -22,14 +23,14 @@ function loopSelection($playerNameCurrent)
   while (true) {
     clearScreen();
     menuShow();
-
+    $tempChar = createCharacterInstance($characterSelected);
     echo "Vez de $playerNameCurrent escolher seu personagem!\n";
     if ($characterSelected == 1) {
-      berserkerShow();
+      berserkerShow($tempChar);
     } elseif ($characterSelected == 2) {
-      wizardShow();
+      wizardShow($tempChar);
     } elseif ($characterSelected == 3) {
-      archerShow();
+      archerShow($tempChar);
     }
 
     menuController();
